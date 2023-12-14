@@ -1,6 +1,10 @@
-name = "bricks-markup-translator"
+name = "markup-xlator"
 main = "src/index.js"
 compatibility_date = "2023-12-06"
+workers_dev = false
+routes = [
+		{ pattern = "bricks-markup-xlator.xwalk.ch", custom_domain = true }
+]
 
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
 # Note: Use secrets to store sensitive data.

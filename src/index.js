@@ -8,8 +8,7 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import handleProxy from './proxy';
-import handleRedirect from './redirect';
+import handleTranslate from './translate';
 import apiRouter from './router';
 
 // Export a default object containing event handlers
@@ -22,11 +21,8 @@ export default {
 
 		// You can get pretty far with simple logic like if/switch-statements
 		switch (url.pathname) {
-			case '/redirect':
-				return handleRedirect.fetch(request, env, ctx);
-
-			case '/proxy':
-				return handleProxy.fetch(request, env, ctx);
+			case '/translate':
+				return handleTranslate.fetch(request, env, ctx);
 		}
 
 		if (url.pathname.startsWith('/api/')) {
