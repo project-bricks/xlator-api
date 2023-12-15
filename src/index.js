@@ -1,42 +1,112 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { Router } from 'itty-router';
+import { createCors } from 'itty-cors'
 
-import handleTranslate from './translate';
-import apiRouter from './router';
+const { preflight, corsify } = createCors()
 
-// Export a default object containing event handlers
+class FragmentRenderer {
+	constructor(sourceURLString, pageId) {
+		this.sourceURL = new URL(sourceURLString);
+		this.pageId = pageId;
+	}
+
+	async element(element) {
+		const headerContents = await (await fetch(`${this.sourceURL.origin}/${this.pageId}.plain.html`)).text();
+		element.setInnerContent(headerContents, {html: true});
+	}
+}
+
+class BlockRewriter {
+	constructor(brickList) {
+		this.brickList = brickList;
+	}
+
+	element(element) {
+		const classes = element.getAttribute('class').split(' ');
+		const blockName = classes[0];
+
+		element.setAttribute('brick', blockName);
+		element.setAttribute('class', classes.slice(1).join(' '));
+		element.tagName = `aem-${blockName}`;
+
+		if(!this.brickList.includes(element.tagName)) {
+			this.brickList.push(element.tagName);
+			console.log('tagName', element.tagName)
+		}
+
+		if(element.getAttribute('class') === '') {
+			element.removeAttribute('class')
+		}
+	}
+}
+
+class BricksMetaTagger {
+	constructor(brickList) {
+		this.brickList = brickList;
+	}
+
+	element(element) {
+		console.log('BricksMetaTagger', this.brickList)
+		element.append(`<meta name="aem:brick-list" content="${this.brickList.join(',')}" />`)
+	}
+}
+
+class BricksMetaReducer {
+	constructor(brickList) {
+		this.brickList = brickList;
+	}
+
+	end(end) {
+		console.log(this.brickList)
+		end.append(`<!-- brickList=${this.brickList.join(',')} -->`, { html: true })
+	}
+}
+
+function checkSourceURL(u) {
+	const allowedHosts = ['bricks.albertodicagno.com', 'aem.live', 'www.aem.live']
+	const uu = new URL(u);
+	return allowedHosts.includes(uu.host);
+}
+
+// now let's create a router (note the lack of "new")
+const router = Router();
+
+router.all('*', preflight);
+
+router.get('/api/v1/translate', async (request) => {
+	const url = new URL(request.url);
+	const sourceUrl = url.searchParams.get('source');
+
+	if (!sourceUrl) {
+		return new Response('Bad request: Missing `source` query param', { status: 400 });
+	}
+	if (!checkSourceURL(sourceUrl)) {
+		return new Response('Forbidden: Source domain not allowed', { status: 403 });
+	}
+
+	const brickList = ['aem-root', 'aem-header', 'aem-footer'];
+
+	const rewriter = new HTMLRewriter()
+		.on('header', new FragmentRenderer(sourceUrl, 'new-nav'))
+		.on('footer', new FragmentRenderer(sourceUrl, 'footer'))
+		.on('div > div[class]', new BlockRewriter(brickList))
+		.onDocument(new BricksMetaReducer(brickList));
+
+	const res = await fetch(sourceUrl);
+	const sourceContentType = res.headers.get('Content-Type');
+
+	if (sourceContentType.startsWith('text/html')) {
+		return rewriter.transform(res);
+	}
+
+	return res;
+});
+
+// 404 for everything else
+router.all('*', () => new Response('Not Found.', { status: 404 }));
+
 export default {
-	// The fetch handler is invoked when this worker receives a HTTP(S) request
-	// and should return a Response (optionally wrapped in a Promise)
-	async fetch(request, env, ctx) {
-		// You'll find it helpful to parse the request.url string into a URL object. Learn more at https://developer.mozilla.org/en-US/docs/Web/API/URL
-		const url = new URL(request.url);
-
-		// You can get pretty far with simple logic like if/switch-statements
-		switch (url.pathname) {
-			case '/translate':
-				return handleTranslate.fetch(request, env, ctx);
-		}
-
-		if (url.pathname.startsWith('/api/')) {
-			// You can also use more robust routing
-			return apiRouter.handle(request);
-		}
-
-		return new Response(
-			`Try making requests to:
-      <ul>
-      <li><code><a href="/redirect?redirectUrl=https://example.com/">/redirect?redirectUrl=https://example.com/</a></code>,</li>
-      <li><code><a href="/proxy?modify&proxyUrl=https://example.com/">/proxy?modify&proxyUrl=https://example.com/</a></code>, or</li>
-      <li><code><a href="/api/todos">/api/todos</a></code></li>`,
-			{ headers: { 'Content-Type': 'text/html' } }
-		);
-	},
+	fetch: (...args) => router
+		.handle(...args)
+		.catch(err => error(500, err.stack))
+		.then(corsify) // cors should be applied to error responses as well
 };

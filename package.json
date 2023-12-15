@@ -10,5 +10,8 @@
   "devDependencies": {
     "itty-router": "^3.0.12",
     "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "itty-cors": "^0.3.6"
   }
 }
