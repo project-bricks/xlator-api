@@ -11,7 +11,8 @@ class FragmentRenderer {
 }
 
 class BlockRewriter {
-	constructor() {
+	constructor(brickList) {
+	  this.brickList = brickList;
 	}
 
 	element(element) {
@@ -22,9 +23,48 @@ class BlockRewriter {
     element.setAttribute('class', classes.slice(1).join(' '));
     element.tagName = `aem-${blockName}`;
 
+		if(!this.brickList.includes(element.tagName)) {
+			this.brickList.push(element.tagName);
+			console.log('tagName', element.tagName)
+		}
+
 		if(element.getAttribute('class') === '') {
 			element.removeAttribute('class')
 		}
+	}
+}
+
+class BricksMetaTagger {
+	constructor(brickList) {
+		this.brickList = brickList;
+	}
+
+	element(element) {
+		console.log('BricksMetaTagger', this.brickList)
+		element.append(`<meta name="aem:brick-list" content="${this.brickList.join(',')}" />`)
+	}
+}
+
+class BricksMetaReducer {
+	constructor(brickList) {
+		this.brickList = brickList;
+	}
+
+	doctype(doctype) {
+		// An incoming doctype, such as <!DOCTYPE html>
+	}
+
+	comments(comment) {
+		// An incoming comment
+	}
+
+	text(text) {
+		// An incoming piece of text
+	}
+
+	end(end) {
+		console.log(this.brickList)
+		end.append(`<!-- brickList=${this.brickList.join(',')} -->`, { html: true })
 	}
 }
 
@@ -46,10 +86,14 @@ export default {
 			return new Response('Forbidden: Source domain not allowed', { status: 403 });
 		}
 
+		const brickList = ['aem-root', 'aem-header', 'aem-footer'];
+
 		const rewriter = new HTMLRewriter()
 			.on('header', new FragmentRenderer(sourceUrl, 'new-nav'))
 			.on('footer', new FragmentRenderer(sourceUrl, 'footer'))
-			.on('div > div[class]', new BlockRewriter());
+			.on('div > div[class]', new BlockRewriter(brickList))
+			.onDocument(new BricksMetaReducer(brickList));
+
 		const res = await fetch(sourceUrl);
 		const sourceContentType = res.headers.get('Content-Type');
 
