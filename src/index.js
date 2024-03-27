@@ -62,7 +62,7 @@ class BricksMetaReducer {
 }
 
 function checkSourceURL(u) {
-	const allowedHosts = ['bricks.albertodicagno.com', 'aem.live', 'www.aem.live']
+	const allowedHosts = ['bricks.albertodicagno.com', 'aem.live', 'www.aem.live', 'main--maidenform--hlxsites.hlx.page', 'main--maidenform--hlxsites.hlx.live'];
 	const uu = new URL(u);
 	return allowedHosts.includes(uu.host);
 }
