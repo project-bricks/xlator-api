@@ -1,7 +1,10 @@
 import { Router } from 'itty-router';
 import { createCors } from 'itty-cors'
 
-const { preflight, corsify } = createCors()
+const { preflight, corsify } = createCors({
+  methods: ['GET', 'PATCH', 'POST', 'OPTIONS'],
+  origins: ['https://bricks-xlator-ui.albertodicagno.com', 'http://localhost'],
+})
 
 class FragmentRenderer {
 	constructor(sourceURLString, pageId) {
