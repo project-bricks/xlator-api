@@ -3,7 +3,7 @@ import { createCors } from 'itty-cors'
 
 const { preflight, corsify } = createCors({
   methods: ['GET', 'PATCH', 'POST', 'OPTIONS'],
-  origins: ['https://bricks-xlator-ui.albertodicagno.com', 'http://localhost'],
+  origins: ['https://bricks-xlator-ui.albertodicagno.com', 'http://localhost:3000', 'http://localhost:8880'],
 })
 
 class FragmentRenderer {
