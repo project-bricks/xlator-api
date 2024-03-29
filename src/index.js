@@ -6,6 +6,8 @@ const { preflight, corsify } = createCors({
   origins: ['https://bricks-xlator-ui.albertodicagno.com', 'http://localhost:3000', 'http://localhost:8880'],
 })
 
+const apiError = (status, message) => new Response(message, { status });
+
 class FragmentRenderer {
 	constructor(sourceURLString, pageId) {
 		this.sourceURL = new URL(sourceURLString);
@@ -110,6 +112,6 @@ router.all('*', () => new Response('Not Found.', { status: 404 }));
 export default {
 	fetch: (...args) => router
 		.handle(...args)
-		.catch(err => error(500, err.stack))
+		.catch(err => apiError(500, err.stack))
 		.then(corsify) // cors should be applied to error responses as well
 };
