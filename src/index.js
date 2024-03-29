@@ -95,8 +95,8 @@ router.get('/api/v1/translate', async (request) => {
 	const brickList = ['aem-root', 'aem-header', 'aem-footer'];
 
 	const rewriter = new HTMLRewriter()
-		.on('header', new FragmentRenderer(sourceUrl, 'new-nav'))
-		.on('footer', new FragmentRenderer(sourceUrl, 'footer'))
+		// .on('header', new FragmentRenderer(sourceUrl, 'new-nav'))
+		// .on('footer', new FragmentRenderer(sourceUrl, 'footer'))
 		.on('div > div[class]', new BlockRewriter(brickList))
 		.onDocument(new BricksMetaReducer(brickList));
 
