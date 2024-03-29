@@ -6,3 +6,5 @@ workers_dev = false
 routes = [
 		{ pattern = "bricks-xlator.albertodicagno.com", custom_domain = true }
 ]
+[limits]
+cpu_ms = 50
