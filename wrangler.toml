@@ -4,7 +4,7 @@ account_id = "976cf63aa976cd0e681ddbcf6fb8dee2"
 compatibility_date = "2023-12-06"
 workers_dev = false
 routes = [
-		{ pattern = "bricks-xlator.albertodicagno.com", custom_domain = true }
+		{ pattern = "translator.project-bricks.com", custom_domain = true }
 ]
 #[limits]
 #cpu_ms = 100
