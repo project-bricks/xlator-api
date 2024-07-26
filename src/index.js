@@ -4,7 +4,7 @@ import { createCors } from 'itty-cors'
 const { preflight, corsify } = createCors({
   methods: ['GET', 'PATCH', 'POST', 'OPTIONS'],
   origins: [
-		'https://bricks-xlator-ui.albertodicagno.com',
+		'https://translate.project-bricks.com',
 		'http://localhost:3000',
 		'http://localhost:8880',
 	],
