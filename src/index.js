@@ -48,6 +48,18 @@ class BlockRewriter {
 	}
 }
 
+class SectionRewriter {
+	constructor() {
+	}
+
+	element(element) {
+		const classList = element.getAttribute('class')
+		element.setTagName('section')
+		const updatedClassList = classList.split(' ').filter(className => className !== 'section').join(' ')
+		element.setAttribute('class', updatedClassList)
+	}
+}
+
 class BricksMetaTagger {
 	constructor(brickList) {
 		this.brickList = brickList;
@@ -98,6 +110,7 @@ router.get('/api/v1/translate', async (request) => {
 		// .on('header', new FragmentRenderer(sourceUrl, 'new-nav'))
 		// .on('footer', new FragmentRenderer(sourceUrl, 'footer'))
 		.on('div > div[class]', new BlockRewriter(brickList))
+		.on('div.section', new SectionRewriter())
 		.onDocument(new BricksMetaReducer(brickList));
 
 	const res = await fetch(sourceUrl);
